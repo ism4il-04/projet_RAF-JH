@@ -5,8 +5,8 @@ import os
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import Qt
 
-from main_window import MainWindow
-from styles import STYLESHEET
+from gui.main_window import MainWindow
+from gui.styles import STYLESHEET
 
 
 def run_app():

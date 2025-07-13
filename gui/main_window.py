@@ -5,8 +5,8 @@ from PyQt5.QtWidgets import QMainWindow, QTabWidget, QWidget, QVBoxLayout, QLabe
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
 
-from resource_tab import ResourceSummaryTab
-from raf_tab import RAFTab
+from gui.resource_tab import ResourceSummaryTab
+from gui.raf_tab import RAFTab
 
 
 class MainWindow(QMainWindow):

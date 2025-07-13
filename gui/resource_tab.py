@@ -7,8 +7,8 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
                              QCheckBox)
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
 
-from widgets import FileSelector, StatusPanel
-from utils.helpers import show_error, get_default_output_path, open_file, show_question
+from gui.widgets import FileSelector, StatusPanel
+from gui.utils import show_error, get_default_output_path, open_file, show_question
 
 # Import core functionality
 import sys

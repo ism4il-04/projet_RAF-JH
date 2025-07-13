@@ -1,5 +1,5 @@
 # gui/__init__.py
 
-from app import run_app
+from gui.app import run_app
 
 __all__ = ['run_app']

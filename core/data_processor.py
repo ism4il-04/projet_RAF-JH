@@ -134,8 +134,6 @@ class DataProcessor:
     #         row_index += 1
     #
     #     return result_df
-
-    
     @staticmethod
     def format_resource_summary(pivot_df, connection_dict, phase_dict, montant_dict):
         """
@@ -153,7 +151,7 @@ class DataProcessor:
         # Create output DataFrame with all required columns
         result_df = pd.DataFrame(columns=[
             'Resource/ PROJET', 'Charge JH', 'Somme de Charge JH',
-            'Niveau de connexion', 'Phase du projet', 'Montant total (Contrat) (Commande)', 'Charge Theorique', 'Ecart'
+            'Niveau de connexion', 'Phase du projet', 'Montant total (Contrat) (Commande)', 'Charge Theorique', 'Ecart','CA'
         ])
 
         current_resource = None
@@ -166,6 +164,7 @@ class DataProcessor:
             resource = row['Ressource']
             project = row['Projet']
             charge = row['Charge JH']
+            ca = row['CA']
 
             # If this is a new resource, add the resource row
             if resource != current_resource:
@@ -191,6 +190,7 @@ class DataProcessor:
             result_df.loc[row_index, 'Niveau de connexion'] = connection_level
             result_df.loc[row_index, 'Phase du projet'] = project_phase
             result_df.loc[row_index, 'Montant total (Contrat) (Commande)'] = montant_total
+            result_df.loc[row_index, 'CA'] = ca
 
             if theoretical_charge is not None:
                 result_df.loc[row_index, 'Charge Theorique'] = theoretical_charge
