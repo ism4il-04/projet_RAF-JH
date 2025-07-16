@@ -81,6 +81,11 @@ class ResourceSummaryWorker(QThread):
             if not self.output_file:
                 self.output_file = get_default_output_path(self.input_file, "_resource_summary")
 
+            # select only checked phases
+            widget = ResourceSummaryTab()
+            phases = widget.get_checked_phases()
+            result_df = result_df[result_df["Phase du projet"].isin(phases)]
+
             # Write to Excel
             self.progress_update.emit(f"Writing results to '{self.output_file}'...")
             ExcelHandler.write_excel(result_df, self.output_file, 'Resource Summary')
