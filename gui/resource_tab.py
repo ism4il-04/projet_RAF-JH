@@ -266,3 +266,32 @@ class ResourceSummaryTab(QWidget):
                 open_file(output_file)
         else:
             self.status_panel.set_status(message, "error")
+
+    def get_checked_phases(self):
+        """"
+        methode that returns a list containing the phases selected
+        """
+        phases = []
+        if self.cadrage_checkbox.isChecked():
+            phases.append("Cadrage / spécification")
+        if self.developpement_checkbox.isChecked():
+            phases.append("Développement")
+        if self.production_checkbox.isChecked():
+            phases.append("En production (VSR)")
+        if self.non_demarre_autre_lot_checkbox.isChecked():
+            phases.append("Non démarré (autre lot)")
+        if self.non_demarre_checkbox.isChecked():
+            phases.append("Non démarré (nouveau projet)")
+        if self.preprod_checkbox.isChecked():
+            phases.append("Pré-production")
+        if self.arrete_checkbox.isChecked():
+            phases.append("Projet arrêté définitivement")
+        if self.pause_checkbox.isChecked():
+            phases.append("Projet en pause")
+        if self.recette_interne_checkbox.isChecked():
+            phases.append("Recette interne")
+        if self.recette_user_checkbox.isChecked():
+            phases.append("Recette utilisateur")
+        if self.termine_checkbox.isChecked():
+            phases.append("Terminé (VSR signée)")
+        return phases
