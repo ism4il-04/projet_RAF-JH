@@ -57,6 +57,11 @@ class ResourceSummaryWorker(QThread):
             connection_dict = DataProcessor.create_connection_dict(deployments_df, 'Niveau de connexion')
             phase_dict = DataProcessor.create_connection_dict(deployments_df, 'Phase du projet')
             montant_dict = DataProcessor.create_connection_dict(deployments_df, 'Montant total (Contrat) (Commande)')
+            # create CA dictionary by summing CA by project
+            ca_dict = {}
+            if 'CA' in deployments_df.columns and 'Nom' in deployments_df.columns:
+                ca_by_project = deployments_df.groupby('Nom')['CA'].sum()
+                ca_dict = ca_by_project.to_dict()
 
             # Calculate Charge JH
             self.progress_update.emit("Calculating 'Charge JH'...")
@@ -65,6 +70,8 @@ class ResourceSummaryWorker(QThread):
             # Create pivot table
             self.progress_update.emit("Creating pivot table...")
             pivot_df = ExcelHandler.create_pivot_table(df, 'Charge JH', ['Ressource', 'Projet'])
+            # Add CA column to pivot_df by mapping project to summed CA
+            pivot_df['CA'] = pivot_df['Projet'].map(ca_dict)
 
             # Format the resource summary with theoretical charge
             self.progress_update.emit("Formatting output data and calculating theoretical charges...")

@@ -9,8 +9,8 @@ THEORETICAL_CHARGE_RULES = {
         "Recette utilisateur": 4,
         "Recette interne": 4,
         "Pré-production": 5,
-        "En production (VSR)": 6,
-        "Terminé (VSR signée)": 6
+        "En production (VSR)": 6,#
+        "Terminé (VSR signée)": 6#
     },
     "Semi Connexion": {
         "Non démarré (nouveau projet)": 0,
