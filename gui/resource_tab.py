@@ -66,6 +66,11 @@ class ResourceSummaryWorker(QThread):
                 ca_by_project = deployments_df.groupby('Nom')['CA'].sum()
                 ca_dict = ca_by_project.to_dict()
 
+            # Add Dernière Note mapping if present
+            derniere_note_dict = {}
+            if 'Dernière Note' in deployments_df.columns and 'Nom' in deployments_df.columns:
+                derniere_note_dict = deployments_df.set_index('Nom')['Dernière Note'].to_dict()
+
             # Calculate Charge JH
             self.progress_update.emit("Calculating 'Charge JH'...")
             df = DataProcessor.calculate_charge_jh(df)
@@ -75,6 +80,9 @@ class ResourceSummaryWorker(QThread):
             pivot_df = ExcelHandler.create_pivot_table(df, 'Charge JH', ['Ressource', 'Projet'])
             # Add CA column to pivot_df by mapping project to summed CA
             pivot_df['CA'] = pivot_df['Projet'].map(ca_dict)
+            # Add Dernière Note column to pivot_df by mapping project
+            if derniere_note_dict:
+                pivot_df['Dernière Note'] = pivot_df['Projet'].map(derniere_note_dict)
 
             # Format the resource summary with theoretical charge
             self.progress_update.emit("Formatting output data and calculating theoretical charges...")

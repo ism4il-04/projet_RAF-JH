@@ -151,7 +151,7 @@ class DataProcessor:
         # Create output DataFrame with all required columns
         result_df = pd.DataFrame(columns=[
             'Resource/ PROJET', 'Charge JH', 'Somme de Charge JH',
-            'Niveau de connexion', 'Phase du projet', 'Montant total (Contrat) (Commande)', 'Charge Theorique', 'Ecart','CA'
+            'Niveau de connexion', 'Phase du projet', 'Montant total (Contrat) (Commande)', 'Charge Theorique', 'Ecart','CA','Dernière Note'
         ])
 
         current_resource = None
@@ -165,6 +165,7 @@ class DataProcessor:
             project = row['Projet']
             charge = row['Charge JH']
             ca = row['CA']
+            dn = row ['Dernière Note']
 
             # If this is a new resource, add the resource row
             if resource != current_resource:
@@ -191,6 +192,7 @@ class DataProcessor:
             result_df.loc[row_index, 'Phase du projet'] = project_phase
             result_df.loc[row_index, 'Montant total (Contrat) (Commande)'] = montant_total
             result_df.loc[row_index, 'CA'] = ca
+            result_df.loc[row_index, 'Dernière Note'] = dn
 
             if theoretical_charge is not None:
                 result_df.loc[row_index, 'Charge Theorique'] = theoretical_charge
