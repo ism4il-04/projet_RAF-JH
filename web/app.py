@@ -5,12 +5,38 @@ from io import BytesIO
 import base64
 from shiny import App, ui, render, reactive
 
-app_ui = ui.page_fluid(
-    ui.h2("Upload a file and view its table and charts"),
-    ui.input_file("file", "Choose CSV or Excel file", accept=[".csv", ".xlsx", ".xls"]),
-    ui.output_ui("bar_chart_ui"),
-    ui.output_ui("pie_chart_ui"),
-    ui.output_ui("table_ui"),
+app_ui = ui.page_sidebar(
+    ui.sidebar(
+        ui.h2("📁 Data Uploader"),
+        ui.input_file("file", "Choose CSV or Excel file", accept=[".csv", ".xlsx", ".xls"]),
+        ui.hr(),
+        ui.p("Upload a file to view its summary, charts, and table."),
+    ),
+    ui.div(
+        ui.h3("File Information"),
+        ui.output_ui("file_info"),
+        ui.hr(),
+        ui.layout_columns(
+            ui.div(
+                ui.h4("Bar Chart: Charge JH par consultant"),
+                ui.output_ui("bar_chart_ui"),
+                class_="card p-3 mb-3"
+            ),
+            ui.div(
+                ui.h4("Pie Chart: Distribution de l'ecarts"),
+                ui.output_ui("pie_chart_ui"),
+                class_="card p-3 mb-3"
+            ),
+            col_widths=(6, 6)
+        ),
+        ui.hr(),
+        ui.h4("Data Table"),
+        ui.div(
+            ui.output_ui("table_ui"),
+            style="max-height:400px;overflow:auto; border:1px solid #eee; border-radius:8px;"
+        ),
+        class_="container-fluid"
+    )
 )
 
 def read_uploaded_file(fileinfo):
@@ -40,9 +66,22 @@ def server(input, output, session):
         return read_uploaded_file(input.file())
 
     def get_column(data, colname):
-        # Normalize columns: strip and lower
         norm_cols = {c.strip().lower(): c for c in data.columns}
         return norm_cols.get(colname.strip().lower(), None)
+
+    @output()
+    @render.ui
+    def file_info():
+        fileinfo = input.file()
+        data = df()
+        if not fileinfo or data is None:
+            return ui.p("No file uploaded.")
+        file = fileinfo[0]
+        return ui.div(
+            ui.p(f"<b>File name:</b> {file['name']}", class_="mb-1"),
+            ui.p(f"<b>Rows:</b> {data.shape[0]}, <b>Columns:</b> {data.shape[1]}", class_="mb-1"),
+            ui.p(f"<b>Columns:</b> {', '.join(data.columns)}", class_="mb-1")
+        )
 
     @output()
     @render.ui
@@ -57,7 +96,7 @@ def server(input, output, session):
         chart_data = data.dropna(subset=[col_jh])
         if chart_data.empty:
             return ui.p("Bar chart: No data to display after filtering NaN values.")
-        fig, ax = plt.subplots(figsize=(8, 4))
+        fig, ax = plt.subplots(figsize=(6, 3))
         ax.bar(chart_data[col_proj].astype(str), chart_data[col_jh])
         ax.set_xlabel("Consultants")
         ax.set_ylabel(col_jh)
