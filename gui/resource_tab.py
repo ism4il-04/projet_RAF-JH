@@ -82,7 +82,12 @@ class ResourceSummaryWorker(QThread):
             if not self.output_file:
                 self.output_file = get_default_output_path(self.input_file, "_resource_summary")
 
-            result_df = result_df[result_df["Phase du projet"].isin(self.phases_checked)]
+            result_df["__original_order"] = range(len(result_df))
+            result_df = result_df[
+                result_df["Phase du projet"].isin(self.phases_checked) |
+                result_df["Somme de Charge JH"].notna() & (result_df["Somme de Charge JH"] != 0)
+                ]
+            result_df = result_df.sort_values("__original_order").drop(columns="__original_order")
 
             # Write to Excel
             self.progress_update.emit(f"Writing results to '{self.output_file}'...")
