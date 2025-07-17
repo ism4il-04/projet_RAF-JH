@@ -177,9 +177,12 @@ class ResourceSummaryTab(QWidget):
         phase_label = QLabel("Phases:")
         phase_layout.addWidget(phase_label)
 
-        checkbox_layout1 = QHBoxLayout()
-        checkbox_layout2 = QHBoxLayout()
-        checkbox_layout3 = QHBoxLayout()
+        checkbox_layout = QHBoxLayout()
+
+        checkbox_layout1 = QVBoxLayout()
+        checkbox_layout2 = QVBoxLayout()
+        checkbox_layout3 = QVBoxLayout()
+        checkbox_layout4 = QVBoxLayout()
 
         self.cadrage_checkbox = QCheckBox("Cadrage / spécification")
         self.cadrage_checkbox.setChecked(True)
@@ -189,23 +192,11 @@ class ResourceSummaryTab(QWidget):
         self.developpement_checkbox.setChecked(True)
         checkbox_layout1.addWidget(self.developpement_checkbox)
 
-        self.non_demarre_autre_lot_checkbox = QCheckBox("Non démarré (autre lot)")
-        self.non_demarre_autre_lot_checkbox.setChecked(True)
-        checkbox_layout1.addWidget(self.non_demarre_autre_lot_checkbox)
-
         self.non_demarre_checkbox = QCheckBox("Non démarré (nouveau projet)")
         self.non_demarre_checkbox.setChecked(True)
         checkbox_layout1.addWidget(self.non_demarre_checkbox)
 
-        phase_layout.addLayout(checkbox_layout1)
-
-        self.preprod_checkbox = QCheckBox("Pré-production")
-        self.preprod_checkbox.setChecked(True)
-        checkbox_layout2.addWidget(self.preprod_checkbox)
-
-        self.pause_checkbox = QCheckBox("Projet en pause")
-        self.pause_checkbox.setChecked(True)
-        checkbox_layout2.addWidget(self.pause_checkbox)
+        checkbox_layout.addLayout(checkbox_layout1)
 
         self.recette_interne_checkbox = QCheckBox("Recette interne")
         self.recette_interne_checkbox.setChecked(True)
@@ -215,21 +206,39 @@ class ResourceSummaryTab(QWidget):
         self.recette_user_checkbox.setChecked(True)
         checkbox_layout2.addWidget(self.recette_user_checkbox)
 
-        phase_layout.addLayout(checkbox_layout2)
+        self.preprod_checkbox = QCheckBox("Pré-production")
+        self.preprod_checkbox.setChecked(True)
+        checkbox_layout2.addWidget(self.preprod_checkbox)
 
-        self.production_checkbox = QCheckBox("En production (VSR)")
-        self.production_checkbox.setChecked(False)
-        checkbox_layout3.addWidget(self.production_checkbox)
-
-        self.termine_checkbox = QCheckBox("Terminé (VSR signée)")
-        self.termine_checkbox.setChecked(False)
-        checkbox_layout3.addWidget(self.termine_checkbox)
+        checkbox_layout.addLayout(checkbox_layout2)
 
         self.arrete_checkbox = QCheckBox("Projet arrêté définitivement")
         self.arrete_checkbox.setChecked(False)
         checkbox_layout3.addWidget(self.arrete_checkbox)
 
-        phase_layout.addLayout(checkbox_layout3)
+        self.pause_checkbox = QCheckBox("Projet en pause")
+        self.pause_checkbox.setChecked(False)
+        checkbox_layout3.addWidget(self.pause_checkbox)
+
+        self.production_checkbox = QCheckBox("En production (VSR)")
+        self.production_checkbox.setChecked(False)
+        checkbox_layout3.addWidget(self.production_checkbox)
+
+        checkbox_layout.addLayout(checkbox_layout3)
+
+        self.non_demarre_autre_lot_checkbox = QCheckBox("Non démarré (autre lot)")
+        self.non_demarre_autre_lot_checkbox.setChecked(False)
+        checkbox_layout4.addWidget(self.non_demarre_autre_lot_checkbox)
+
+        self.termine_checkbox = QCheckBox("Terminé (VSR signée)")
+        self.termine_checkbox.setChecked(False)
+        checkbox_layout4.addWidget(self.termine_checkbox)
+
+
+
+        checkbox_layout.addLayout(checkbox_layout4)
+
+        phase_layout.addLayout(checkbox_layout)
 
         phase_layout.addStretch()
         layout.addLayout(phase_layout)
