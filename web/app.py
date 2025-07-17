@@ -78,9 +78,7 @@ def server(input, output, session):
             return ui.p("No file uploaded.")
         file = fileinfo[0]
         return ui.div(
-            ui.p(f"<b>File name:</b> {file['name']}", class_="mb-1"),
-            ui.p(f"<b>Rows:</b> {data.shape[0]}, <b>Columns:</b> {data.shape[1]}", class_="mb-1"),
-            ui.p(f"<b>Columns:</b> {', '.join(data.columns)}", class_="mb-1")
+            ui.HTML(f"<b>File name:</b> {file['name']}")
         )
 
     @output()
