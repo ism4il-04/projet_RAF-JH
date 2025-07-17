@@ -2,3 +2,4 @@ pandas
 PyQt5
 openpyxl
 shiny
+matplotlib
