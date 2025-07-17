@@ -82,12 +82,34 @@ class ResourceSummaryWorker(QThread):
             if not self.output_file:
                 self.output_file = get_default_output_path(self.input_file, "_resource_summary")
 
+            # Detect consultant rows (they have a value in "Somme de Charge JH" and NaN in "Charge JH")
+            result_df["is_consultant"] = result_df["Charge JH"].isna() & result_df["Somme de Charge JH"].notna()
+
+            # Add a group ID to each consultant block
+            result_df["consultant_id"] = result_df["Resource/ PROJET"].where(result_df["is_consultant"]).ffill()
+
             result_df["__original_order"] = range(len(result_df))
             result_df = result_df[
                 result_df["Phase du projet"].isin(self.phases_checked) |
                 result_df["Somme de Charge JH"].notna() & (result_df["Somme de Charge JH"] != 0)
                 ]
             result_df = result_df.sort_values("__original_order").drop(columns="__original_order")
+
+            # Drop consultant rows temporarily
+            projects_only = result_df[~result_df["is_consultant"]].copy()
+
+            # Recalculate sums
+            sums = projects_only.groupby("consultant_id")["Charge JH"].sum().reset_index()
+            sums.columns = ["consultant_id", "new_sum"]
+
+            # Merge back the recalculated sum into the original DataFrame
+            result_df = result_df.merge(sums, on="consultant_id", how="left")
+
+            # Update consultant rows only
+            result_df.loc[result_df["is_consultant"], "Somme de Charge JH"] = result_df.loc[result_df["is_consultant"], "new_sum"]
+
+            # Clean up
+            result_df = result_df.drop(columns=["is_consultant", "new_sum", "consultant_id"])
 
             # Write to Excel
             self.progress_update.emit(f"Writing results to '{self.output_file}'...")
