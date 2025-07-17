@@ -10,6 +10,8 @@ from PyQt5.QtCore import Qt, QThread, pyqtSignal
 from gui.widgets import FileSelector, StatusPanel
 from gui.utils import show_error, get_default_output_path, open_file, show_question
 
+import pandas as pd
+
 # Import core functionality
 import sys
 
@@ -101,6 +103,11 @@ class ResourceSummaryWorker(QThread):
             # Recalculate sums
             sums = projects_only.groupby("consultant_id")["Charge JH"].sum().reset_index()
             sums.columns = ["consultant_id", "new_sum"]
+
+            # Ensure every consultant has a row in the sums (even if 0)
+            all_consultants = result_df[result_df["is_consultant"]][["consultant_id"]].drop_duplicates()
+            sums = all_consultants.merge(sums, on="consultant_id", how="left").fillna(0)
+            sums = sums.infer_objects(copy=False)
 
             # Merge back the recalculated sum into the original DataFrame
             result_df = result_df.merge(sums, on="consultant_id", how="left")
