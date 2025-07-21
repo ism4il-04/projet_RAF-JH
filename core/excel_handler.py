@@ -203,14 +203,15 @@ class ExcelHandler:
             return False
 
     @staticmethod
-    def add_graphs_sheet(output_file, sheet_name, figures):
+    def add_graphs_sheet(output_file, sheet_name, figures, ecart_sum=None):
         """
-        Add a new sheet to the Excel file and insert matplotlib figures as images, aligned horizontally.
+        Add a new sheet to the Excel file and insert matplotlib figures as images, aligned horizontally. Optionally add sum of Ecart below the last image.
 
         Args:
             output_file (str): Path to the Excel file to modify
             sheet_name (str): Name of the sheet to add
             figures (list): List of matplotlib Figure objects
+            ecart_sum (float or None): If provided, write this value below the last image
         """
         from openpyxl import load_workbook
         from openpyxl.drawing.image import Image as XLImage
@@ -226,6 +227,7 @@ class ExcelHandler:
 
         temp_files = []
         col_letters = ['A', 'K', 'U', 'AE', 'AO', 'AY']  # Add more if needed
+        last_col = 'A'
         for idx, fig in enumerate(figures):
             tmpfile = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
             fig.savefig(tmpfile.name, bbox_inches='tight')
@@ -233,8 +235,12 @@ class ExcelHandler:
             img = XLImage(tmpfile.name)
             col = col_letters[idx] if idx < len(col_letters) else f'A{idx*10+1}'
             ws.add_image(img, f'{col}1')
+            last_col = col
             temp_files.append(tmpfile.name)
             tmpfile.close()
+        # Write ecart sum below the last image if provided
+        if ecart_sum is not None:
+            ws[f'{last_col}27'] = f'somme ecart = {ecart_sum:.2f}'
         wb.save(output_file)
         # Now delete temp files
         for fname in temp_files:

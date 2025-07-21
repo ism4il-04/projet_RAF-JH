@@ -143,6 +143,9 @@ class ResourceSummaryWorker(QThread):
             # Clean up
             result_df = result_df.drop(columns=["is_consultant", "new_sum", "consultant_id"])
 
+            # Add a value to a specific cell (e.g., 'col2' in 'row2')
+            result_df.loc[0, 'somme ecart'] = result_df['Ecart'].sum()
+
             if self.columns is not None:
                 result_df = result_df.drop(columns=self.columns)
 
@@ -190,7 +193,8 @@ class ResourceSummaryWorker(QThread):
                     ax2.set_title("Distribution de l'ecarts")
                     figures.append(fig2)
             if figures:
-                ExcelHandler.add_graphs_sheet(self.output_file, 'graphes', figures)
+                ecart_sum = result_df['Ecart'].sum() if 'Ecart' in result_df.columns else None
+                ExcelHandler.add_graphs_sheet(self.output_file, 'graphes', figures, ecart_sum=ecart_sum)
 
             self.finished_signal.emit(True, "Resource summary generated successfully!", self.output_file)
 
