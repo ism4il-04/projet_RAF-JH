@@ -201,3 +201,44 @@ class ExcelHandler:
         except Exception as e:
             print(f"Could not open file: {e}")
             return False
+
+    @staticmethod
+    def add_graphs_sheet(output_file, sheet_name, figures):
+        """
+        Add a new sheet to the Excel file and insert matplotlib figures as images, aligned horizontally.
+
+        Args:
+            output_file (str): Path to the Excel file to modify
+            sheet_name (str): Name of the sheet to add
+            figures (list): List of matplotlib Figure objects
+        """
+        from openpyxl import load_workbook
+        from openpyxl.drawing.image import Image as XLImage
+        import tempfile
+        import os
+
+        # Load the workbook
+        wb = load_workbook(output_file)
+        # Remove existing sheet if present
+        if sheet_name in wb.sheetnames:
+            del wb[sheet_name]
+        ws = wb.create_sheet(title=sheet_name)
+
+        temp_files = []
+        col_letters = ['A', 'K', 'U', 'AE', 'AO', 'AY']  # Add more if needed
+        for idx, fig in enumerate(figures):
+            tmpfile = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
+            fig.savefig(tmpfile.name, bbox_inches='tight')
+            tmpfile.flush()
+            img = XLImage(tmpfile.name)
+            col = col_letters[idx] if idx < len(col_letters) else f'A{idx*10+1}'
+            ws.add_image(img, f'{col}1')
+            temp_files.append(tmpfile.name)
+            tmpfile.close()
+        wb.save(output_file)
+        # Now delete temp files
+        for fname in temp_files:
+            try:
+                os.unlink(fname)
+            except Exception:
+                pass

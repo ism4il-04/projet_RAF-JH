@@ -158,6 +158,40 @@ class ResourceSummaryWorker(QThread):
                 'High CA': high_ca_df
             }, self.output_file)
 
+            # Generate graphs and add to 'graphes' sheet
+            import matplotlib.pyplot as plt
+            figures = []
+            # Bar chart: Charge JH par consultant
+            col_proj = 'Resource/ PROJET'
+            col_jh = 'Somme de Charge JH'
+            # Only use rows where 'Somme de Charge JH' is notna and 'Resource/ PROJET' is not indented
+            chart_data = result_df[(result_df[col_jh].notna()) & (~result_df[col_proj].str.startswith('    '))]
+            if not chart_data.empty:
+                fig1, ax1 = plt.subplots(figsize=(6, 3))
+                ax1.bar(chart_data[col_proj].astype(str), chart_data[col_jh])
+                ax1.set_xlabel("Consultants")
+                ax1.set_ylabel(col_jh)
+                ax1.set_title("Charge JH par consultant")
+                plt.xticks(rotation=45, ha="right")
+                figures.append(fig1)
+            # Pie chart: Distribution de l'ecarts
+            col_ecart = 'Ecart'
+            if col_ecart in result_df.columns:
+                ecart = result_df[col_ecart].dropna()
+                if not ecart.empty:
+                    categories = [
+                        (ecart > 0).sum(),
+                        (ecart < 0).sum(),
+                        (ecart == 0).sum(),
+                    ]
+                    labels = ["Positive", "Negative", "Zero"]
+                    fig2, ax2 = plt.subplots()
+                    ax2.pie(categories, labels=labels, autopct="%1.1f%%", startangle=90)
+                    ax2.set_title("Distribution de l'ecarts")
+                    figures.append(fig2)
+            if figures:
+                ExcelHandler.add_graphs_sheet(self.output_file, 'graphes', figures)
+
             self.finished_signal.emit(True, "Resource summary generated successfully!", self.output_file)
 
         except Exception as e:
