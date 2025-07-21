@@ -151,7 +151,7 @@ class DataProcessor:
         # Create output DataFrame with all required columns
         result_df = pd.DataFrame(columns=[
             'Resource/ PROJET', 'Charge JH', 'Somme de Charge JH',
-            'Niveau de connexion', 'Phase du projet', 'Montant total (Contrat) (Commande)', 'Charge Theorique', 'Ecart','CA','Dernière Note'
+            'Niveau de connexion', 'Phase du projet', 'Charge Theorique', 'Ecart','Montant total (Contrat) (Commande)','Dernière Note','Durée'
         ])
 
         current_resource = None
@@ -164,8 +164,9 @@ class DataProcessor:
             resource = row['Ressource']
             project = row['Projet']
             charge = row['Charge JH']
-            ca = row['CA']
+            ca = row['Montant total (Contrat) (Commande)']
             dn = row ['Dernière Note']
+            du = row['Durée']
 
             # If this is a new resource, add the resource row
             if resource != current_resource:
@@ -178,7 +179,6 @@ class DataProcessor:
             # Look up connection level and project phase for this project
             connection_level = connection_dict.get(project, '')
             project_phase = phase_dict.get(project, '')
-            montant_total = montant_dict.get(project, '')
 
             # Calculate theoretical charge if both values are available
             theoretical_charge = None
@@ -190,9 +190,9 @@ class DataProcessor:
             result_df.loc[row_index, 'Charge JH'] = charge
             result_df.loc[row_index, 'Niveau de connexion'] = connection_level
             result_df.loc[row_index, 'Phase du projet'] = project_phase
-            result_df.loc[row_index, 'Montant total (Contrat) (Commande)'] = montant_total
-            result_df.loc[row_index, 'CA'] = ca
+            result_df.loc[row_index, 'Montant total (Contrat) (Commande)'] = ca
             result_df.loc[row_index, 'Dernière Note'] = dn
+            result_df.loc[row_index, 'Durée'] = du
 
             if theoretical_charge is not None:
                 result_df.loc[row_index, 'Charge Theorique'] = theoretical_charge
