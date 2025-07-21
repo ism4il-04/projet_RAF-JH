@@ -25,12 +25,16 @@ class ResourceSummaryWorker(QThread):
     progress_update = pyqtSignal(str)
     finished_signal = pyqtSignal(bool, str, str)
 
-    def __init__(self, input_file, deployments_file, output_file=None,phases_checked=None):
+    def __init__(self, input_file, deployments_file, output_file=None,phases_checked=None,columns=None):
         super().__init__()
         self.input_file = input_file
         self.deployments_file = deployments_file
         self.output_file = output_file
         self.phases_checked = phases_checked
+        if columns == []:
+            self.columns = None
+        else:
+            self.columns = columns
 
     def run(self):
         try:
@@ -74,10 +78,28 @@ class ResourceSummaryWorker(QThread):
             self.progress_update.emit("Creating pivot table...")
             pivot_df = ExcelHandler.create_pivot_table(df, 'Charge JH', ['Ressource', 'Projet'])
             # Add CA column to pivot_df by mapping project to summed CA
-            pivot_df['CA'] = pivot_df['Projet'].map(ca_dict)
+            pivot_df['Montant total (Contrat) (Commande)'] = pivot_df['Projet'].map(montant_dict)
             # Add Dernière Note column to pivot_df by mapping project
             if derniere_note_dict:
                 pivot_df['Dernière Note'] = pivot_df['Projet'].map(derniere_note_dict)
+            if self.columns is None:
+                # Calculate Durée (days between today and Date d'affectation)
+                if "Date d'affectation" in deployments_df.columns and "Nom" in deployments_df.columns:
+                    date_affect_dict = deployments_df.set_index("Nom")["Date d'affectation"].to_dict()
+                    today = pd.Timestamp.now().normalize()
+                    duree_list = []
+                    for project in pivot_df["Projet"]:
+                        date_affect = pd.to_datetime(date_affect_dict.get(project, pd.NaT), errors="coerce")
+                        if pd.notna(date_affect):
+                            duree = (today - date_affect.normalize()).days
+                        else:
+                            duree = None
+                        duree_list.append(duree)
+                    pivot_df["Durée"] = duree_list
+                else:
+                    pivot_df["Durée"] = None
+            else:
+                pivot_df["Durée"] = None
 
             # Format the resource summary with theoretical charge
             self.progress_update.emit("Formatting output data and calculating theoretical charges...")
@@ -121,6 +143,9 @@ class ResourceSummaryWorker(QThread):
             # Clean up
             result_df = result_df.drop(columns=["is_consultant", "new_sum", "consultant_id"])
 
+            if self.columns is not None:
+                result_df = result_df.drop(columns=self.columns)
+
             # Write to Excel
             self.progress_update.emit(f"Writing results to '{self.output_file}'...")
             ExcelHandler.write_excel(result_df, self.output_file, 'Resource Summary')
@@ -138,6 +163,7 @@ class ResourceSummaryTab(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.worker = None
         self.setup_ui()
 
     def setup_ui(self):
@@ -236,7 +262,19 @@ class ResourceSummaryTab(QWidget):
         phase_layout.addLayout(checkbox_layout)
 
         phase_layout.addStretch()
+
         layout.addLayout(phase_layout)
+
+        duree_layout = QVBoxLayout()
+
+        self.d_label = QLabel("Colonnes:")
+        duree_layout.addWidget(self.d_label)
+
+        self.duree_checkbox = QCheckBox("Durée")
+        self.duree_checkbox.setChecked(False)
+        duree_layout.addWidget(self.duree_checkbox)
+
+        layout.addLayout(duree_layout)
 
         # Generate button
         button_layout = QHBoxLayout()
@@ -283,7 +321,7 @@ class ResourceSummaryTab(QWidget):
         self.status_panel.set_status("Processing...", "info")
 
         # Start worker thread
-        self.worker = ResourceSummaryWorker(input_file, deployments_file, output_file,self.get_checked_phases())
+        self.worker = ResourceSummaryWorker(input_file, deployments_file, output_file,self.get_checked_phases(),self.get_checked_columns())
         self.worker.progress_update.connect(self.update_progress)
         self.worker.finished_signal.connect(self.on_generation_finished)
         self.worker.start()
@@ -307,6 +345,7 @@ class ResourceSummaryTab(QWidget):
             if self.open_after_checkbox.isChecked():
                 open_file(output_file)
         else:
+            print(message)
             self.status_panel.set_status(message, "error")
 
     def get_checked_phases(self):
@@ -337,3 +376,9 @@ class ResourceSummaryTab(QWidget):
         if self.termine_checkbox.isChecked():
             phases.append("Terminé (VSR signée)")
         return phases
+
+    def get_checked_columns(self):
+        columns=[]
+        if not self.duree_checkbox.isChecked():
+            columns.append("Durée")
+        return columns
