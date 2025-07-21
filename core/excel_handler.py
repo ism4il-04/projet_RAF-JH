@@ -134,6 +134,50 @@ class ExcelHandler:
         return output_file
 
     @staticmethod
+    def write_multiple_sheets(dfs_dict, output_file):
+        """
+        Write multiple DataFrames to an Excel file, each in its own sheet, with formatting.
+
+        Args:
+            dfs_dict (dict): {sheet_name: DataFrame}
+            output_file (str): Path where the output file will be saved
+        """
+        output_dir = os.path.dirname(output_file)
+        if output_dir and not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+
+        with pd.ExcelWriter(output_file, engine='openpyxl') as writer:
+            for sheet_name, df in dfs_dict.items():
+                df.to_excel(writer, index=False, sheet_name=sheet_name)
+                workbook = writer.book
+                worksheet = writer.sheets[sheet_name]
+                # Find the Ecart column index
+                ecart_col_idx = None
+                for idx, col_name in enumerate(df.columns):
+                    if col_name == 'Ecart':
+                        ecart_col_idx = idx
+                        break
+                # Apply formatting for resource rows (non-indented) and Ecart column
+                for idx, row in enumerate(worksheet.iter_rows(min_row=2, max_row=len(df) + 1)):
+                    cell_value = str(row[0].value) if row[0].value else ""
+                    # Make resource rows bold
+                    if not cell_value.startswith('    '):
+                        for cell in row:
+                            cell.font = Font(bold=True)
+                    # Apply conditional formatting to Ecart column
+                    if ecart_col_idx is not None and not cell_value.startswith('    '):
+                        continue
+                    if ecart_col_idx is not None:
+                        ecart_cell = row[ecart_col_idx]
+                        if ecart_cell.value is not None and isinstance(ecart_cell.value, (int, float)):
+                            from openpyxl.styles import PatternFill
+                            if ecart_cell.value > 0:
+                                ecart_cell.fill = PatternFill(start_color="C6E0B4", end_color="C6E0B4", fill_type="solid")
+                            elif ecart_cell.value < 0:
+                                ecart_cell.fill = PatternFill(start_color="F8CBAD", end_color="F8CBAD", fill_type="solid")
+        return output_file
+
+    @staticmethod
     def open_file(file_path):
         """
         Open a file with the default application.

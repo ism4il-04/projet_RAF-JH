@@ -148,7 +148,15 @@ class ResourceSummaryWorker(QThread):
 
             # Write to Excel
             self.progress_update.emit(f"Writing results to '{self.output_file}'...")
-            ExcelHandler.write_excel(result_df, self.output_file, 'Resource Summary')
+            # Create High CA sheet (projects with Montant total (Contrat) (Commande) > 3000)
+            if 'Montant total (Contrat) (Commande)' in result_df.columns:
+                high_ca_df = result_df[result_df['Montant total (Contrat) (Commande)'] > 3000]
+            else:
+                high_ca_df = result_df.iloc[0:0].copy()  # empty if column missing
+            ExcelHandler.write_multiple_sheets({
+                'Resource Summary': result_df,
+                'High CA': high_ca_df
+            }, self.output_file)
 
             self.finished_signal.emit(True, "Resource summary generated successfully!", self.output_file)
 
